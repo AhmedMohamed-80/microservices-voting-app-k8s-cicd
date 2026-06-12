@@ -17,10 +17,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Build Docker image
         run: docker build -t $IMAGE_NAME:$IMAGE_TAG ./result
+
       - name: Save image to tarball
         run: docker save $IMAGE_NAME:$IMAGE_TAG -o result-image.tar
+
       - name: Upload image artifact
         uses: actions/upload-artifact@v4
         with:
@@ -33,16 +36,51 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Download image artifact
         uses: actions/download-artifact@v4
         with:
           name: result-image
+
       - name: Load image
         run: docker load -i result-image.tar
+
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          exit-code: '0'
+
       - name: Run container
         run: docker run -d --name result-app -p 4000:80 $IMAGE_NAME:$IMAGE_TAG
+
       - name: Check container is running
         run: docker ps
+
+      - name: Wait for container to be healthy
+        run: |
+          for i in {1..15}; do
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' result-app 2>/dev/null || echo "none")
+            echo "Health status: $STATUS"
+            if [ "$STATUS" == "healthy" ]; then
+              echo "Container is healthy"
+              break
+            fi
+            if [ "$STATUS" == "unhealthy" ]; then
+              echo "Container is unhealthy"
+              docker logs result-app
+              exit 1
+            fi
+            if [ "$STATUS" == "none" ]; then
+              echo "No healthcheck defined in image, skipping health wait"
+              break
+            fi
+            sleep 2
+          done
+
       - name: Wait for app to respond
         run: |
           for i in {1..10}; do
@@ -53,8 +91,10 @@ jobs:
             echo "Waiting for app... ($i)"
             sleep 2
           done
+
       - name: Curl test - check response headers
         run: curl -i http://localhost:4000
+
       - name: Curl test - check HTTP status code
         run: |
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4000)
@@ -64,9 +104,11 @@ jobs:
             exit 1
           fi
           echo "PASS"
+
       - name: Show logs on failure
         if: failure()
         run: docker logs result-app
+
       - name: Cleanup
         if: always()
         run: docker rm -f result-app
@@ -79,12 +121,15 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: result-image
+
       - name: Load image
         run: docker load -i result-image.tar
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUP_USERNAME }}
-          password: ${{ secrets.DOCEKR_HUP_TOKEN }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Push image
         run: docker push $IMAGE_NAME:$IMAGE_TAG
