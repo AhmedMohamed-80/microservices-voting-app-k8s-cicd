@@ -85,6 +85,6 @@ jobs:
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUP_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          password: ${{ secrets.DOCEKR_HUP_TOKEN }}
       - name: Push image
         run: docker push $IMAGE_NAME:$IMAGE_TAG
