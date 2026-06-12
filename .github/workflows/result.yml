@@ -36,10 +36,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Make test script executable
-        run: chmod +x result/test/test.sh
+        run: chmod +x result/test/tests.sh
 
       - name: Run tests
-        run: ./result/test/test.sh
+        run: ./result/test/tests.sh
 
   push:
     runs-on: ubuntu-latest
