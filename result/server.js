@@ -62,7 +62,7 @@ function collectVotesFromResult(result) {
 
   return votes;
 }
-
+ 
 app.use(cookieParser());
 app.use(express.urlencoded());
 app.use(express.static(__dirname + '/views'));
