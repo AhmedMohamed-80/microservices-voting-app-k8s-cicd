@@ -1,0 +1,116 @@
+name: Build Test and Push Vote Image
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'vote/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/vote
+  IMAGE_TAG: 1.0
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t $IMAGE_NAME:$IMAGE_TAG ./vote
+      - name: Save image to tarball
+        run: docker save $IMAGE_NAME:$IMAGE_TAG -o vote-image.tar
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vote-image
+          path: vote-image.tar
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Download image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: vote-image
+      - name: Load image
+        run: docker load -i vote-image.tar
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          exit-code: '0'
+      - name: Run container
+        run: docker run -d --name vote-app -p 5000:80 $IMAGE_NAME:$IMAGE_TAG
+      - name: Check container is running
+        run: docker ps
+      - name: Wait for container to be healthy
+        run: |
+          for i in {1..15}; do
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' vote-app 2>/dev/null || echo "none")
+            echo "Health status: $STATUS"
+            if [ "$STATUS" == "healthy" ]; then
+              echo "Container is healthy"
+              break
+            fi
+            if [ "$STATUS" == "unhealthy" ]; then
+              echo "Container is unhealthy"
+              docker logs vote-app
+              exit 1
+            fi
+            if [ "$STATUS" == "none" ]; then
+              echo "No healthcheck defined in image, skipping health wait"
+              break
+            fi
+            sleep 2
+          done
+      - name: Wait for app to respond
+        run: |
+          for i in {1..10}; do
+            if curl -sf http://localhost:5000 > /dev/null; then
+              echo "App is up"
+              break
+            fi
+            echo "Waiting for app... ($i)"
+            sleep 2
+          done
+      - name: Curl test - check response headers
+        run: curl -i http://localhost:5000
+      - name: Curl test - check HTTP status code
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5000)
+          echo "Status code: $STATUS"
+          if [ "$STATUS" -ne 200 ]; then
+            echo "FAIL: expected 200, got $STATUS"
+            exit 1
+          fi
+          echo "PASS"
+      - name: Show logs on failure
+        if: failure()
+        run: docker logs vote-app
+      - name: Cleanup
+        if: always()
+        run: docker rm -f vote-app
+  push:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Download image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: vote-image
+      - name: Load image
+        run: docker load -i vote-image.tar
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCEKR_HUB_TOKEN }}
+      - name: Push image
+        run: docker push $IMAGE_NAME:$IMAGE_TAG
