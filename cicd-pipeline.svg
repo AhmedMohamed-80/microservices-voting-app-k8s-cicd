@@ -1,0 +1,71 @@
+<svg width="680" height="460" viewBox="0 0 680 460" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>CI/CD pipeline from GitHub to Kubernetes</title>
+  <desc>Developer pushes code to GitHub, which triggers GitHub Actions to build, test, and push a semantic-versioned image to Docker Hub, which Kubernetes then pulls to deploy across vote, worker, and result pods.</desc>
+  <defs>
+    <marker id="arrow2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#5f5e5a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <rect width="680" height="460" fill="#ffffff"/>
+
+  <!-- Developer -->
+  <rect x="40" y="40" width="160" height="56" rx="8" fill="#f1efe8" stroke="#5f5e5a" stroke-width="0.5"/>
+  <text x="120" y="58" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14" font-weight="500" fill="#2c2c2a">Developer</text>
+  <text x="120" y="76" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="12" fill="#444441">git push</text>
+
+  <!-- GitHub repo -->
+  <rect x="260" y="40" width="160" height="56" rx="8" fill="#f1efe8" stroke="#5f5e5a" stroke-width="0.5"/>
+  <text x="340" y="58" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14" font-weight="500" fill="#2c2c2a">GitHub repo</text>
+  <text x="340" y="76" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="12" fill="#444441">Webhook trigger</text>
+
+  <!-- Build image -->
+  <rect x="480" y="40" width="160" height="56" rx="8" fill="#eeedfe" stroke="#534ab7" stroke-width="0.5"/>
+  <text x="560" y="58" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14" font-weight="500" fill="#26215c">Build image</text>
+  <text x="560" y="76" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="12" fill="#3c3489">GitHub Actions</text>
+
+  <line x1="200" y1="68" x2="258" y2="68" stroke="#5f5e5a" stroke-width="1" marker-end="url(#arrow2)"/>
+  <line x1="420" y1="68" x2="478" y2="68" stroke="#5f5e5a" stroke-width="1" marker-end="url(#arrow2)"/>
+
+  <line x1="560" y1="96" x2="560" y2="140" stroke="#5f5e5a" stroke-width="1" marker-end="url(#arrow2)"/>
+
+  <!-- Run + test -->
+  <rect x="480" y="140" width="160" height="56" rx="8" fill="#eeedfe" stroke="#534ab7" stroke-width="0.5"/>
+  <text x="560" y="158" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14" font-weight="500" fill="#26215c">Run + test</text>
+  <text x="560" y="176" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="12" fill="#3c3489">Container test suite</text>
+
+  <line x1="480" y1="168" x2="420" y2="168" stroke="#5f5e5a" stroke-width="1" marker-end="url(#arrow2)"/>
+
+  <!-- Pass/fail gate -->
+  <rect x="260" y="140" width="160" height="56" rx="8" fill="#eeedfe" stroke="#534ab7" stroke-width="0.5"/>
+  <text x="340" y="158" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14" font-weight="500" fill="#26215c">Pass / fail gate</text>
+  <text x="340" y="176" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="12" fill="#3c3489">On pass, continue</text>
+
+  <line x1="340" y1="196" x2="340" y2="240" stroke="#5f5e5a" stroke-width="1" marker-end="url(#arrow2)"/>
+
+  <!-- Push to Docker Hub -->
+  <rect x="260" y="240" width="160" height="56" rx="8" fill="#e1f5ee" stroke="#0f6e56" stroke-width="0.5"/>
+  <text x="340" y="258" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14" font-weight="500" fill="#04342c">Push to Docker Hub</text>
+  <text x="340" y="276" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="12" fill="#085041">Tagged with semver</text>
+
+  <line x1="340" y1="296" x2="340" y2="340" stroke="#5f5e5a" stroke-width="1" marker-end="url(#arrow2)"/>
+
+  <!-- Kubernetes deploy -->
+  <rect x="260" y="340" width="160" height="56" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+  <text x="340" y="358" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14" font-weight="500" fill="#042c53">Kubernetes deploy</text>
+  <text x="340" y="376" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="12" fill="#0c447c">Pulls versioned image</text>
+
+  <line x1="320" y1="396" x2="160" y2="396" stroke="#5f5e5a" stroke-width="1" marker-end="url(#arrow2)"/>
+  <line x1="340" y1="396" x2="340" y2="420" stroke="#5f5e5a" stroke-width="1" marker-end="url(#arrow2)"/>
+  <line x1="360" y1="396" x2="520" y2="396" stroke="#5f5e5a" stroke-width="1" marker-end="url(#arrow2)"/>
+
+  <!-- Pods -->
+  <rect x="80" y="420" width="160" height="40" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+  <text x="160" y="440" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14" fill="#042c53">vote pods</text>
+
+  <rect x="260" y="420" width="160" height="40" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+  <text x="340" y="440" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14" fill="#042c53">worker pod</text>
+
+  <rect x="440" y="420" width="160" height="40" rx="8" fill="#e6f1fb" stroke="#185fa5" stroke-width="0.5"/>
+  <text x="520" y="440" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="14" fill="#042c53">result pods</text>
+</svg>
