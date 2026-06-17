@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: voting-app-sa
+  namespace: voting-app
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: voting-app-role
+  namespace: voting-app
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: voting-app-rolebinding
+  namespace: voting-app
+subjects:
+- kind: ServiceAccount
+  name: voting-app-sa
+  namespace: voting-app
+roleRef:
+  kind: Role
+  name: voting-app-role
+  apiGroup: rbac.authorization.k8s.io
